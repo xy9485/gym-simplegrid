@@ -48,6 +48,7 @@ class SimpleGridEnv(Env):
     def __init__(self,     
         obstacle_map: str | list[str],
         render_mode: str | None = None,
+        max_episodic_steps: int = 9999999
     ):
         """
         Initialise the environment.
@@ -78,6 +79,7 @@ class SimpleGridEnv(Env):
         self.agent_color = 'yellow'
         self.tile_cache = {}
         self.fps = self.metadata['render_fps']
+        self.max_episodic_steps = max_episodic_steps
         #self.frames = []
 
     def reset(
@@ -101,7 +103,8 @@ class SimpleGridEnv(Env):
 
         # parse options
         self.start_xy = self.parse_state_option('start_loc', options)
-        self.goal_xy = self.parse_state_option('goal_loc', options)
+        self.goals_xy = self.parse_state_option('goal_loc', options)
+        self.episodic_step = 0
 
         # initialise internal vars
         self.agent_xy = self.start_xy
@@ -141,7 +144,12 @@ class SimpleGridEnv(Env):
         # if self.render_mode == "human":
         self.render()
 
-        return self.get_obs(), self.reward, self.done, False, self.get_info()
+        truncated = False
+        self.episodic_step += 1
+        if self.episodic_step == self.max_episodic_steps:
+            truncated = True
+
+        return self.get_obs(), self.reward, self.done, truncated, self.get_info()
     
     def parse_obstacle_map(self, obstacle_map) -> np.ndarray:
         """
@@ -182,6 +190,8 @@ class SimpleGridEnv(Env):
                 return self.to_xy(state)
             elif isinstance(state, tuple):
                 return state
+            elif isinstance(state, list):
+                return state
             else:
                 raise TypeError(f'Allowed types for `{state_name}` are int or tuple.')
         except KeyError:
@@ -203,12 +213,13 @@ class SimpleGridEnv(Env):
         # check that goals do not overlap with walls
         assert self.obstacles[self.start_xy] == self.FREE, \
             f"Start position {self.start_xy} overlaps with a wall."
-        assert self.obstacles[self.goal_xy] == self.FREE, \
-            f"Goal position {self.goal_xy} overlaps with a wall."
-        assert self.is_in_bounds(*self.start_xy), \
-            f"Start position {self.start_xy} is out of bounds."
-        assert self.is_in_bounds(*self.goal_xy), \
-            f"Goal position {self.goal_xy} is out of bounds."
+        for xy in self.goals_xy:
+            assert self.obstacles[xy] == self.FREE, \
+                f"Goal position {xy} overlaps with a wall."
+            assert self.is_in_bounds(*self.start_xy), \
+                f"Start position {self.start_xy} is out of bounds."
+            assert self.is_in_bounds(*xy), \
+                f"Goal position {xy} is out of bounds."
         
     def to_s(self, row: int, col: int) -> int:
         """
@@ -226,7 +237,7 @@ class SimpleGridEnv(Env):
         """
         Check if the agent is on its own goal.
         """
-        return self.agent_xy == self.goal_xy
+        return self.agent_xy in self.goals_xy
 
     def is_free(self, row: int, col: int) -> bool:
         """
@@ -245,11 +256,16 @@ class SimpleGridEnv(Env):
         Get the reward of a given cell.
         """
         if not self.is_in_bounds(x, y):
+            # return 0.0
             return -1.0
         elif not self.is_free(x, y):
             return -1.0
-        elif (x, y) == self.goal_xy:
-            return 1.0
+        elif (x, y) in self.goals_xy:
+            if (x, y) == self.goals_xy[0]:
+                return 1.0
+            else:
+                # return a sample from a normal distribution
+                return np.random.normal(-0.1, 1.0)
         else:
             return 0.0
 
@@ -281,6 +297,8 @@ class SimpleGridEnv(Env):
             return None
         elif self.render_mode == "rgb_array":
             return self.render_frame()
+        elif self.render_mode == None:
+            return None
         # elif mode == "rgb_array_list":
         #     img = self.render_frame(caption=caption)
         #     self.frames.append(img)
@@ -323,9 +341,9 @@ class SimpleGridEnv(Env):
         img = self.update_cell_in_frame(img, x, y, cell, tile_size)
 
         # Render goal
-        x, y = self.goal_xy
-        cell = r.ColoredTile(color="green")
-        img = self.update_cell_in_frame(img, x, y, cell, tile_size)
+        for x, y in self.goals_xy:
+            cell = r.ColoredTile(color="green")
+            img = self.update_cell_in_frame(img, x, y, cell, tile_size)
 
         # Render agent
         x, y = self.agent_xy
