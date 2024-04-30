@@ -5,8 +5,8 @@ import matplotlib
 import numpy as np
 import os
 import shutil
-import torch
-import torchvision
+# import torch
+# import torchvision
 import json
 # from torch.utils.tensorboard import SummaryWriter
 import scipy
@@ -214,8 +214,10 @@ if __name__ == "__main__":
             "0000000",
             "0000000",
         ]
-    start_loc = (0,2)
-    goal_loc = [(6,2), (1,6)]
+    # start_loc = (0,2)
+    # goal_loc = [(6,2), (1,6)]
+    start_loc = (3,3)
+    goal_loc = [(0,3), (6,3)]
     total_steps = 100000
     n_repeat = 1
     # log_path = "results/2room_q_learning.log"

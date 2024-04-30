@@ -132,3 +132,4 @@ misc/
 log/
 *.png
 *.txt
+.DS_Store

@@ -148,8 +148,15 @@ class SimpleGridEnv(Env):
         self.episodic_step += 1
         if self.episodic_step == self.max_episodic_steps:
             truncated = True
-
-        return self.get_obs(), self.reward, self.done, truncated, self.get_info()
+        info = self.get_info()
+        if self.done:
+            if self.agent_xy == self.goals_xy[0]:
+                info.update({"reached_goal": 0})
+            elif self.agent_xy == self.goals_xy[1]:
+                info.update({"reached_goal": 1})
+            else:
+                raise ValueError("The agent reached an unknown goal.")
+        return self.get_obs(), self.reward, self.done, truncated, info
     
     def parse_obstacle_map(self, obstacle_map) -> np.ndarray:
         """
@@ -262,7 +269,7 @@ class SimpleGridEnv(Env):
             return -1.0
         elif (x, y) in self.goals_xy:
             if (x, y) == self.goals_xy[0]:
-                return 1.0
+                return 0.1
             else:
                 # return a sample from a normal distribution
                 return np.random.normal(-0.1, 1.0)
