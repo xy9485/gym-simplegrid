@@ -170,4 +170,4 @@ def plot_avg_true_Q(log_path):
             if np.mean(data) > avg_return:
                 avg_return = np.mean(data)
     # plot np.mean(avg_repeats) as a horizontal line
-    plt.axhline(y=avg_return, color='r', linestyle='-', label='Average True Q') 
+    plt.axhline(y=avg_return, color='r', linestyle='-', label='True Value') 

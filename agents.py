@@ -1,3 +1,4 @@
+from collections import deque
 import copy
 import random
 import numpy as np
@@ -378,6 +379,21 @@ class ExpectedSARSA_Agent(Agent):
         else:
             self.Q = np.zeros((self.n_states, self.n_actions))
 
+
+def get_agent(config, env):
+    if config['algo_name'] == 'VQ-learning':
+        agent = VQ_Agent(action_space=env.action_space, observation_space=env.observation_space, **config)
+    elif config['algo_name'] == 'Q-learning':
+        agent = Q_Agent(action_space=env.action_space, observation_space=env.observation_space, **config)
+    elif config['algo_name'] == 'DoubleQ-learning':
+        agent = DoubleQ_Agent(action_space=env.action_space, observation_space=env.observation_space, **config)
+    elif config['algo_name'] == 'SARSA':
+        agent = SARSA_Agent(action_space=env.action_space, observation_space=env.observation_space, **config)
+    elif config['algo_name'] == 'ExpectedSARSA':
+        agent = ExpectedSARSA_Agent(action_space=env.action_space, observation_space=env.observation_space, **config)
+    else:
+        raise ValueError(f"algo_name: {config['algo_name']} not supported")
+    return agent
 
 if __name__ == "__main__":
     def softmax(x: np.array, temperature):
