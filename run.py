@@ -261,7 +261,7 @@ def run_experiment(algo_name, n_repeat=8, total_steps=300000):
         "algo_name": algo_name,
         "eps_start": 0.5,
         "eps_end": 0.0,
-        "eps_decay": 0.99997,
+        "eps_decay": 0.99995,
         # "temperature_start": 1.0, # for softmax explore, if set to not None, it will be used, overwriting eps
         # "temperature_end": 0.01,
         # "temperature_decay": 0.99995,
@@ -283,7 +283,7 @@ def run_experiment(algo_name, n_repeat=8, total_steps=300000):
         explore_start, explore_end, explore_decay = config["temperature_start"], config["temperature_end"], config["temperature_decay"]
     else:
         explore_start, explore_end, explore_decay = config["eps_start"], config["eps_end"], config["eps_decay"]
-    log_dir = f"results/{map_name}/{algo_name}/randinit{int(config['random_value_init'])}_explore[{explore_start},{explore_end},{explore_decay}]_buffer{config['buffer_size']}_{config['batch_size']}_is{config['importance_sampling']}_noisyV{config['noisy_update']}_repeat{n_repeat}_steps{total_steps}" + "--TrueQ-redundantA#2"
+    log_dir = f"results/{map_name}/{algo_name}/randinit{int(config['random_value_init'])}_explore[{explore_start},{explore_end},{explore_decay}]_buffer{config['buffer_size']}_{config['batch_size']}_is{config['importance_sampling']}_noisyV{config['noisy_update']}_repeat{n_repeat}_steps{total_steps}" + "--"
 
     log_paths = {
         "avg_meter": os.path.join(log_dir, "avg_meter.log"),

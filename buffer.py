@@ -90,6 +90,14 @@ class ReplayBufferV2:
                     acts=self.acts_buf[idxs],
                     rews=self.rews_buf[idxs],
                     done=self.done_buf[idxs])
+    
+    def reset(self):
+        self.obs_buf = np.zeros([self.size, self.obs_dim], dtype=np.float32)
+        self.next_obs_buf = np.zeros([self.size, self.obs_dim], dtype=np.float32)
+        self.acts_buf = np.zeros([self.size], dtype=np.float32)
+        self.rews_buf = np.zeros([self.size], dtype=np.float32)
+        self.done_buf = np.zeros(self.size, dtype=np.float32)
+        self.ptr, self.size = 0, 0
 
     def __len__(self) -> int:
         return self.size
